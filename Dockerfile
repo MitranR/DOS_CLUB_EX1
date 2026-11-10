@@ -10,7 +10,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend and frontend source code
+# Copy backend, entrypoint, and frontend source code
+COPY main.py .
 COPY backend ./backend
 COPY frontend ./frontend
 

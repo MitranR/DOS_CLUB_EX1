@@ -1,7 +1,7 @@
 import os
 import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, Header, status
+from fastapi import APIRouter, FastAPI, Depends, HTTPException, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -22,20 +22,8 @@ from .auth import (
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Hospital Management System API",
-    description="Backend API for Hospital Management, User Auth, Profiles, and Doctor Appointments",
-    version="1.0.0"
-)
+router = APIRouter()
 
-# Enable CORS for frontend integration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # --- Dependency for Authenticated User ---
 def get_current_user(
@@ -61,6 +49,7 @@ def get_current_user(
             detail="User not found"
         )
     return user
+
 
 # --- Seed Doctors Helper ---
 def seed_default_doctors():
@@ -146,6 +135,7 @@ def seed_default_doctors():
     finally:
         db.close()
 
+
 # Auto-seed on load
 seed_default_doctors()
 
@@ -154,23 +144,20 @@ seed_default_doctors()
 # 1. AUTHENTICATION ENDPOINTS
 # ==========================================
 
-@app.post("/api/auth/register", response_model=MessageResponse)
+@router.post("/api/auth/register", response_model=MessageResponse)
 def register_user(payload: UserRegister, db: Session = Depends(get_db)):
-    # Check if username exists
     if db.query(User).filter(User.username == payload.username.strip()).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists. Please choose a different one."
         )
 
-    # Check if email exists
     if db.query(User).filter(User.email == payload.email.strip().lower()).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email address already registered. Please log in or use forgot password."
         )
 
-    # Create new user
     hashed = hash_password(payload.password)
     user = User(
         username=payload.username.strip(),
@@ -193,7 +180,7 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
     )
 
 
-@app.post("/api/auth/login")
+@router.post("/api/auth/login")
 def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     username_or_email = payload.username.strip().lower()
     user = db.query(User).filter(
@@ -224,7 +211,7 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     }
 
 
-@app.post("/api/auth/logout", response_model=MessageResponse)
+@router.post("/api/auth/logout", response_model=MessageResponse)
 def logout_user(authorization: Optional[str] = Header(None)):
     if authorization:
         token = authorization.replace("Bearer ", "").strip()
@@ -232,7 +219,7 @@ def logout_user(authorization: Optional[str] = Header(None)):
     return MessageResponse(message="Successfully logged out", success=True)
 
 
-@app.post("/api/auth/forgot-password")
+@router.post("/api/auth/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     identifier = payload.identifier.strip().lower()
     user = db.query(User).filter(
@@ -245,13 +232,11 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
             detail="No account found with that username or email address."
         )
 
-    # Invalidate old unused tokens for this user
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
         PasswordResetToken.is_used == False
     ).update({"is_used": True})
 
-    # Create new reset token valid for 1 hour
     token = generate_reset_token()
     reset_entry = PasswordResetToken(
         user_id=user.id,
@@ -270,7 +255,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     }
 
 
-@app.post("/api/auth/reset-password", response_model=MessageResponse)
+@router.post("/api/auth/reset-password", response_model=MessageResponse)
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
     reset_record = db.query(PasswordResetToken).filter(
         PasswordResetToken.token == payload.token.strip(),
@@ -298,7 +283,6 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
             detail="User not found."
         )
 
-    # Update password and mark token as used
     user.password_hash = hash_password(payload.new_password)
     reset_record.is_used = True
     db.commit()
@@ -313,12 +297,12 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 # 2. USER PROFILE ENDPOINTS
 # ==========================================
 
-@app.get("/api/user/profile", response_model=UserResponse)
+@router.get("/api/user/profile", response_model=UserResponse)
 def get_user_profile(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@app.put("/api/user/profile", response_model=UserResponse)
+@router.put("/api/user/profile", response_model=UserResponse)
 def update_user_profile(
     payload: UserProfileUpdate,
     current_user: User = Depends(get_current_user),
@@ -327,7 +311,6 @@ def update_user_profile(
     if payload.full_name is not None:
         current_user.full_name = payload.full_name
     if payload.email is not None and payload.email != current_user.email:
-        # Check uniqueness of new email
         existing = db.query(User).filter(User.email == payload.email, User.id != current_user.id).first()
         if existing:
             raise HTTPException(
@@ -353,8 +336,10 @@ def update_user_profile(
 # 3. DOCTOR & AVAILABILITY ENDPOINTS
 # ==========================================
 
-@app.get("/api/doctors", response_model=List[DoctorResponse])
+@router.get("/api/doctors", response_model=List[DoctorResponse])
 def list_doctors(db: Session = Depends(get_db)):
+    if db.query(Doctor).count() == 0:
+        seed_default_doctors()
     doctors = db.query(Doctor).all()
     results = []
     for d in doctors:
@@ -382,7 +367,7 @@ def list_doctors(db: Session = Depends(get_db)):
 # 4. APPOINTMENT BOOKING ENDPOINTS
 # ==========================================
 
-@app.post("/api/appointments/book", response_model=MessageResponse)
+@router.post("/api/appointments/book", response_model=MessageResponse)
 def book_appointment(
     payload: AppointmentCreate,
     current_user: User = Depends(get_current_user),
@@ -401,17 +386,14 @@ def book_appointment(
             detail=f"{doctor.name} is currently not available for bookings."
         )
 
-    # Check slot limit constraint (between 25 and 40 per doctor per day)
     if doctor.current_slots_booked >= doctor.max_slots_per_day:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"All {doctor.max_slots_per_day} booking slots for {doctor.name} are fully booked today."
         )
 
-    # Increment booked slots
     doctor.current_slots_booked += 1
 
-    # Create appointment
     appt = Appointment(
         user_id=current_user.id,
         doctor_id=doctor.id,
@@ -438,7 +420,7 @@ def book_appointment(
     )
 
 
-@app.get("/api/appointments/my", response_model=List[AppointmentResponse])
+@router.get("/api/appointments/my", response_model=List[AppointmentResponse])
 def get_my_appointments(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -465,34 +447,58 @@ def get_my_appointments(
 
 
 # ==========================================
-# 5. STATIC FILES MOUNT (SERVE FRONTEND)
+# 5. STATIC FILES & HTML PAGES
 # ==========================================
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
 
 if os.path.exists(FRONTEND_DIR):
-    css_dir = os.path.join(FRONTEND_DIR, "css")
-    js_dir = os.path.join(FRONTEND_DIR, "js")
-    if os.path.exists(css_dir):
-        app.mount("/css", StaticFiles(directory=css_dir), name="css")
-    if os.path.exists(js_dir):
-        app.mount("/js", StaticFiles(directory=js_dir), name="js")
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-
-    @app.get("/")
+    @router.get("/")
     def serve_index():
         index_file = os.path.join(FRONTEND_DIR, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
         return {"message": "Hospital Management API is running."}
 
-    @app.get("/{page_name}.html")
+    @router.get("/{page_name}.html")
     def serve_html_pages(page_name: str):
+        if "/" in page_name or "\\" in page_name or ".." in page_name:
+            raise HTTPException(status_code=404, detail="Page not found")
         file_path = os.path.join(FRONTEND_DIR, f"{page_name}.html")
         if os.path.exists(file_path):
             return FileResponse(file_path)
         raise HTTPException(status_code=404, detail="Page not found")
 else:
-    @app.get("/")
+    @router.get("/")
     def serve_root():
         return {"message": "Hospital Management API is running. Check /docs for interactive Swagger API documentation."}
 
+
+def configure_app(target_app: FastAPI) -> FastAPI:
+    """Attach middleware, API/HTML routes, and static mounts to a FastAPI instance."""
+    target_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    target_app.include_router(router)
+
+    if os.path.exists(FRONTEND_DIR):
+        css_dir = os.path.join(FRONTEND_DIR, "css")
+        js_dir = os.path.join(FRONTEND_DIR, "js")
+        if os.path.exists(css_dir):
+            target_app.mount("/css", StaticFiles(directory=css_dir), name="css")
+        if os.path.exists(js_dir):
+            target_app.mount("/js", StaticFiles(directory=js_dir), name="js")
+        target_app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+    return target_app
+
+
+app = FastAPI(
+    title="Hospital Management System API",
+    description="Backend API for Hospital Management, User Auth, Profiles, and Doctor Appointments",
+    version="1.0.0"
+)
+configure_app(app)

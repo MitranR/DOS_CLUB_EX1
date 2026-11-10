@@ -3,10 +3,15 @@
    Handles backend REST communication and session storage.
    ========================================================= */
 
-// Dynamic API Base: works if opened via FastAPI directly or as separate local static server
-const API_BASE = window.location.origin.includes(':8000') 
-  ? `${window.location.origin}/api` 
-  : 'http://localhost:8000/api';
+// Dynamic API Base: works on Vercel, Docker/localhost:8000, or standalone local dev servers
+const isLocalNon8000 =
+  window.location.protocol === 'file:' ||
+  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+    window.location.port !== '8000');
+
+const API_BASE = isLocalNon8000
+  ? 'http://localhost:8000/api'
+  : `${window.location.origin}/api`;
 
 const TOKEN_KEY = 'hosp_auth_token';
 const USER_KEY = 'hosp_auth_user';
