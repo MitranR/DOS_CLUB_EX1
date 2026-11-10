@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctors & Availability - CityCare Hospital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html" class="active">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <!-- Injected dynamically by api.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Doctors Banner (Simple & Short) -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Doctors & Availability</h1>
+      <p class="hero-subtitle">Specialist credentials, OPD timings, and live appointment slots (max 25–40 per day).</p>
+    </div>
+  </section>
+
+  <!-- Doctors Directory Section -->
+  <main class="section-container">
+    <!-- Specialty Filter Buttons -->
+    <div class="specialty-filter-bar" id="specialtyFilters">
+      <button class="filter-btn active" onclick="filterSpecialty('all')">All Specialties</button>
+      <button class="filter-btn" onclick="filterSpecialty('Cardiology')">Cardiology</button>
+      <button class="filter-btn" onclick="filterSpecialty('Neurology')">Neurology</button>
+      <button class="filter-btn" onclick="filterSpecialty('Pediatrics')">Pediatrics</button>
+      <button class="filter-btn" onclick="filterSpecialty('Orthopedics')">Orthopedics</button>
+      <button class="filter-btn" onclick="filterSpecialty('Dermatology')">Dermatology</button>
+      <button class="filter-btn" onclick="filterSpecialty('General Medicine')">General Medicine</button>
+    </div>
+
+    <!-- Doctor Cards Grid -->
+    <div class="doctors-grid" id="doctorsList">
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading doctor schedules and availability from backend...
+      </div>
+    </div>
+  </main>
+
+  <!-- Booking Appointment Modal -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalDoctorName">Book Appointment</h3>
+        <button class="modal-close-btn" onclick="closeBookingModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="bookingAlert" class="alert"></div>
+
+        <form id="bookingForm">
+          <input type="hidden" id="bookingDoctorId">
+
+          <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Consulting Specialist:</div>
+            <div id="modalDoctorDetails" style="font-weight: 800; color: var(--primary-dark); font-size: 1rem;">-</div>
+            <div id="modalDoctorSlotInfo" style="font-size: 0.82rem; color: var(--accent-green); font-weight: 700; margin-top: 0.2rem;">-</div>
+          </div>
+
+          <div class="form-group">
+            <label for="patientName">Patient Full Name *</label>
+            <input type="text" id="patientName" class="form-control" placeholder="Enter patient name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="contactNumber">Patient Contact Number *</label>
+            <input type="tel" id="contactNumber" class="form-control" placeholder="Enter contact phone number" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="appointmentDate">Appointment Date *</label>
+              <input type="date" id="appointmentDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="appointmentTime">Preferred Time *</label>
+              <select id="appointmentTime" class="form-control" required>
+                <option value="09:00 AM">09:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="03:00 PM">03:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="visitReason">Reason for Consultation / Symptoms</label>
+            <input type="text" id="visitReason" class="form-control" placeholder="e.g. Chest pain, routine physical, skin allergy">
+          </div>
+
+          <button type="submit" id="confirmBookingBtn" class="btn btn-green btn-block">
+            Confirm & Reserve Slot
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    let allDoctors = [];
+    let currentSpecialty = 'all';
+
+    async function loadDoctors() {
+      const container = document.getElementById('doctorsList');
+      try {
+        allDoctors = await apiRequest('/doctors');
+        renderDoctorsList();
+      } catch (err) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; color: var(--danger-red); padding: 3rem;">
+            Failed to connect to backend server. Make sure FastAPI is running.
+          </div>
+        `;
+      }
+    }
+
+    function renderDoctorsList() {
+      const container = document.getElementById('doctorsList');
+      const filtered = currentSpecialty === 'all' 
+        ? allDoctors 
+        : allDoctors.filter(d => d.specialty.toLowerCase() === currentSpecialty.toLowerCase());
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem;">
+            No doctors found for the selected specialty.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(d => {
+        const isFull = d.remaining_slots <= 0;
+        const initials = d.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('').substring(0, 2);
+
+        return `
+          <div class="doctor-card">
+            <div>
+              <div class="doctor-top">
+                <div class="doctor-avatar">${initials}</div>
+                <div class="doctor-info">
+                  <h3>${d.name}</h3>
+                  <span class="specialty-badge">${d.specialty}</span>
+                </div>
+              </div>
+
+              <div class="doctor-meta">
+                <div class="meta-row">
+                  <span class="meta-label">Qualification:</span>
+                  <span class="meta-value">${d.qualification}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Experience:</span>
+                  <span class="meta-value">${d.experience_years} Years</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">OPD Days:</span>
+                  <span class="meta-value">${d.available_days}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Timings:</span>
+                  <span class="meta-value">${d.available_timings}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Room / Clinic:</span>
+                  <span class="meta-value">${d.room_number}</span>
+                </div>
+              </div>
+
+              <div class="slot-badge ${isFull ? 'full' : ''}">
+                <span>${isFull ? '🔴 Daily Slots Full' : '🟢 Available Today'}</span>
+                <span><strong>${d.remaining_slots}</strong> / ${d.max_slots_per_day} slots open</span>
+              </div>
+            </div>
+
+            <button 
+              onclick="handleBookClick(${d.id})" 
+              class="btn ${isFull ? 'btn-outline' : 'btn-primary'} btn-block"
+              ${isFull ? 'disabled style="cursor: not-allowed; opacity: 0.6;"' : ''}
+            >
+              ${isFull ? 'Slots Filled Today' : '📅 Book Appointment'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSpecialty(specialty) {
+      currentSpecialty = specialty;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.trim().toLowerCase() === specialty.toLowerCase() || 
+           (specialty === 'all' && btn.textContent.includes('All'))) {
+          btn.classList.add('active');
+        }
+      });
+      renderDoctorsList();
+    }
+
+    function handleBookClick(doctorId) {
+      if (!isLoggedIn()) {
+        alert('Please sign in or create an account to book a doctor appointment.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const doctor = allDoctors.find(d => d.id === doctorId);
+      if (!doctor) return;
+
+      document.getElementById('bookingDoctorId').value = doctor.id;
+      document.getElementById('modalDoctorName').textContent = `Book with ${doctor.name}`;
+      document.getElementById('modalDoctorDetails').textContent = `${doctor.name} (${doctor.specialty} - ${doctor.room_number})`;
+      document.getElementById('modalDoctorSlotInfo').textContent = `${doctor.remaining_slots} of ${doctor.max_slots_per_day} slots open today`;
+
+      const user = getUser();
+      if (user) {
+        document.getElementById('patientName').value = user.full_name || user.username || '';
+        document.getElementById('contactNumber').value = user.phone_number || '';
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('appointmentDate');
+      dateInput.min = today;
+      dateInput.value = today;
+
+      hideAlert('bookingAlert');
+      document.getElementById('bookingModal').style.display = 'flex';
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert('bookingAlert');
+
+      const btn = document.getElementById('confirmBookingBtn');
+      const doctorId = parseInt(document.getElementById('bookingDoctorId').value);
+      const patientName = document.getElementById('patientName').value.trim();
+      const contactNumber = document.getElementById('contactNumber').value.trim();
+      const appointmentDate = document.getElementById('appointmentDate').value;
+      const appointmentTime = document.getElementById('appointmentTime').value;
+      const reason = document.getElementById('visitReason').value.trim();
+
+      btn.disabled = true;
+      btn.textContent = 'Reserving slot...';
+
+      try {
+        const response = await apiRequest('/appointments/book', {
+          method: 'POST',
+          body: {
+            doctor_id: doctorId,
+            patient_name: patientName,
+            contact_number: contactNumber,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            reason: reason
+          },
+          auth: true
+        });
+
+        showAlert('bookingAlert', response.message, true);
+        await loadDoctors();
+
+        setTimeout(() => {
+          closeBookingModal();
+          if (confirm('Your appointment has been successfully booked! Would you like to view your booked appointments page now?')) {
+            window.location.href = 'appointments.html';
+          }
+        }, 1200);
+
+      } catch (err) {
+        showAlert('bookingAlert', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Reserve Slot';
+      }
+    });
+
+    window.addEventListener('click', (e) => {
+      const modal = document.getElementById('bookingModal');
+      if (e.target === modal) {
+        closeBookingModal();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDoctors();
+    });
+  </script>
+</body>
+</html>
+

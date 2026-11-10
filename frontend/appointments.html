@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Appointments - CityCare Hospital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <!-- Injected dynamically by api.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner (Simple & Short) -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">My Booked Appointments</h1>
+      <p class="hero-subtitle">Review upcoming consultations, doctors, and reservation status.</p>
+    </div>
+  </section>
+
+  <!-- Main Appointments Content -->
+  <main class="profile-wrapper">
+    <div id="apptAlert" class="alert"></div>
+
+    <div class="appointments-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">
+            Consultation History & Schedules
+          </h2>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">
+            Real-time status of your outpatient doctor reservations.
+          </p>
+        </div>
+        <a href="doctors.html" class="btn btn-green">
+          + Book New Consultation
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="styled-table" id="appointmentsTable">
+          <thead>
+            <tr>
+              <th>Doctor</th>
+              <th>Specialty</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Patient Name</th>
+              <th>Reason</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsList">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                Loading your appointments from database...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    async function loadAppointments() {
+      const tbody = document.getElementById('appointmentsList');
+      try {
+        const appts = await apiRequest('/appointments/my', { auth: true });
+        
+        if (!appts || appts.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📅</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">No Appointments Booked Yet</div>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;">You have not scheduled any doctor consultations yet.</p>
+                <a href="doctors.html" class="btn btn-primary btn-sm">Explore Doctors & Available Slots</a>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = appts.map(a => `
+          <tr>
+            <td style="font-weight: 800; color: var(--primary-dark);">${a.doctor_name}</td>
+            <td><span class="specialty-badge">${a.specialty}</span></td>
+            <td><strong>${a.appointment_date}</strong></td>
+            <td>${a.appointment_time}</td>
+            <td>${a.patient_name}</td>
+            <td style="color: var(--text-muted);">${a.reason || 'General Consultation'}</td>
+            <td><span class="badge-status confirmed">${a.status}</span></td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--danger-red); padding: 2rem;">
+              Could not retrieve appointments: ${err.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAppointments();
+    });
+  </script>
+</body>
+</html>
+

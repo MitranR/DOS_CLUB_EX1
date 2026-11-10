@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact & Emergency - CityCare Hospital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <!-- Injected dynamically by api.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner (Simple & Short) -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Emergency & Contact</h1>
+      <p class="hero-subtitle">24/7 emergency room, ambulance fleet, and general hospital assistance.</p>
+    </div>
+  </section>
+
+  <!-- Contact Details Main Grid -->
+  <main class="section-container">
+    <div class="about-grid" style="margin-bottom: 3rem;">
+      
+      <!-- Card 1: 24/7 Emergency -->
+      <div class="about-card" style="border-top: 4px solid var(--danger-red);">
+        <h3 style="color: var(--danger-red);">🚨 Emergency Hotlines</h3>
+        <p>Immediate 24-hour medical emergency response and ICU trauma support.</p>
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 1rem; margin: 1rem 0;">
+          <div style="font-size: 0.85rem; color: #991b1b; font-weight: 700;">TOLL-FREE EMERGENCY:</div>
+          <div style="font-size: 1.4rem; font-weight: 800; color: #b91c1c;">1800-CARE-NOW</div>
+        </div>
+        <p><strong>Ambulance Fleet Dispatch:</strong> +1 (800) 555-AMBU</p>
+        <p><strong>Cardiac Emergency Hotline:</strong> +1 (800) 555-HEART</p>
+      </div>
+
+      <!-- Card 2: OPD & Administrative Desk -->
+      <div class="about-card" style="border-top: 4px solid var(--primary-blue);">
+        <h3 style="color: var(--primary-dark);">📞 Outpatient & General Info</h3>
+        <p>Connect with the OPD reception for scheduling inquiries and general guidance.</p>
+        <p style="margin-top: 1rem;"><strong>General Reception Desk:</strong><br>+1 (800) 555-0100</p>
+        <p style="margin-top: 0.5rem;"><strong>Appointments & Slot Inquiries:</strong><br>+1 (800) 555-0102</p>
+        <p style="margin-top: 0.5rem;"><strong>Insurance & Cashless Desk:</strong><br>+1 (800) 555-0105</p>
+        <p style="margin-top: 0.5rem;"><strong>Email Support:</strong><br>contact@citycarehospital.org</p>
+      </div>
+
+      <!-- Card 3: Location & Hours -->
+      <div class="about-card" style="border-top: 4px solid var(--accent-green);">
+        <h3 style="color: var(--accent-green);">📍 Campus & Visiting Hours</h3>
+        <p><strong>CityCare Medical Center</strong><br>
+        450 Healthcare Boulevard, Suite 100<br>
+        Metro Health District, City Center - 560001</p>
+        
+        <div style="margin-top: 1.25rem;">
+          <div style="font-weight: 700; color: var(--text-main);">Visiting Hours:</div>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">
+            Inpatient Rooms: 04:00 PM – 07:00 PM Daily<br>
+            ICU / CCU Visits: 05:00 PM – 06:00 PM (1 visitor at a time)
+          </p>
+        </div>
+
+        <div style="margin-top: 0.75rem;">
+          <div style="font-weight: 700; color: var(--text-main);">Pharmacy & Diagnostics:</div>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">Open 24 Hours / 365 Days</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Message / Inquiry Form -->
+    <div class="profile-card" style="max-width: 700px; margin: 0 auto;">
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">
+        ✉️ Send a General Inquiry Message
+      </h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Have a general query about hospital admission, insurance coverage, or specialists? Our team will get back to you within 24 hours.
+      </p>
+
+      <div id="contactAlert" class="alert"></div>
+
+      <form id="contactForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cName">Your Name *</label>
+            <input type="text" id="cName" class="form-control" placeholder="Johnathan Doe" required>
+          </div>
+          <div class="form-group">
+            <label for="cPhone">Contact Phone *</label>
+            <input type="tel" id="cPhone" class="form-control" placeholder="+1 (555) 000-0000" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cEmail">Email Address *</label>
+          <input type="email" id="cEmail" class="form-control" placeholder="name@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cSubject">Subject</label>
+          <input type="text" id="cSubject" class="form-control" placeholder="e.g. Health checkup package inquiry, Insurance query">
+        </div>
+
+        <div class="form-group">
+          <label for="cMessage">Your Message *</label>
+          <textarea id="cMessage" class="form-control" placeholder="Type your inquiry here..." rows="4" required></textarea>
+        </div>
+
+        <button type="submit" id="contactSubmitBtn" class="btn btn-primary btn-block">
+          Send Inquiry Message
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('contactSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending message...';
+
+      setTimeout(() => {
+        showAlert('contactAlert', 'Thank you! Your message has been received. Our helpdesk team will contact you shortly.', true);
+        document.getElementById('contactForm').reset();
+        btn.disabled = false;
+        btn.textContent = 'Send Inquiry Message';
+      }, 700);
+    });
+  </script>
+</body>
+</html>
+

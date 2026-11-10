@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Profile Details - CityCare Hospital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <!-- Injected dynamically by api.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Profile Content -->
+  <main class="profile-wrapper">
+    <div id="welcomeBanner" class="alert alert-success" style="margin-bottom: 1.5rem;">
+      👋 Welcome to CityCare! Please complete your medical contact & emergency details below.
+    </div>
+
+    <div id="profileAlert" class="alert"></div>
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar-large" id="avatarDisplay">👤</div>
+        <div class="profile-header-info">
+          <h2 id="headerUsername">Patient Profile Information</h2>
+          <p id="headerEmail">Managing your hospital registration & medical emergency records</p>
+        </div>
+      </div>
+
+      <form id="profileForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullName">Full Name *</label>
+            <input 
+              type="text" 
+              id="fullName" 
+              class="form-control" 
+              placeholder="e.g. Johnathan Doe" 
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="phoneNumber">Contact Phone Number *</label>
+            <input 
+              type="tel" 
+              id="phoneNumber" 
+              class="form-control" 
+              placeholder="e.g. +1 (555) 019-2834" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input 
+              type="email" 
+              id="email" 
+              class="form-control" 
+              placeholder="name@example.com" 
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="bloodGroup">Blood Group</label>
+            <select id="bloodGroup" class="form-control">
+              <option value="">-- Select Blood Group --</option>
+              <option value="A+">A Positive (A+)</option>
+              <option value="A-">A Negative (A-)</option>
+              <option value="B+">B Positive (B+)</option>
+              <option value="B-">B Negative (B-)</option>
+              <option value="AB+">AB Positive (AB+)</option>
+              <option value="AB-">AB Negative (AB-)</option>
+              <option value="O+">O Positive (O+)</option>
+              <option value="O-">O Negative (O-)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Residential Address *</label>
+          <textarea 
+            id="address" 
+            class="form-control" 
+            placeholder="Street address, city, state, postal code" 
+            rows="3" 
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="emergencyContact">Emergency Contact (Name & Phone Number)</label>
+          <input 
+            type="text" 
+            id="emergencyContact" 
+            class="form-control" 
+            placeholder="e.g. Jane Doe (Spouse) - +1 (555) 987-6543"
+          >
+          <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.3rem;">
+            Critical for hospital staff in case of an emergency.
+          </small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem; flex-wrap: wrap;">
+          <button type="submit" id="saveProfileBtn" class="btn btn-green">
+            💾 Save Profile Details
+          </button>
+          <a href="appointments.html" class="btn btn-primary">
+            🗓️ View My Booked Appointments
+          </a>
+          <a href="doctors.html" class="btn btn-outline">
+            🩺 Browse Doctors
+          </a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get('welcome')) {
+      const banner = document.getElementById('welcomeBanner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    const form = document.getElementById('profileForm');
+    const saveBtn = document.getElementById('saveProfileBtn');
+
+    async function loadUserProfile() {
+      try {
+        const user = await apiRequest('/user/profile', { auth: true });
+        
+        document.getElementById('headerUsername').textContent = user.full_name || user.username;
+        document.getElementById('headerEmail').textContent = user.email;
+        
+        if (user.full_name) {
+          const initials = user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          document.getElementById('avatarDisplay').textContent = initials;
+        }
+
+        document.getElementById('fullName').value = user.full_name || '';
+        document.getElementById('phoneNumber').value = user.phone_number || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('bloodGroup').value = user.blood_group || '';
+        document.getElementById('address').value = user.address || '';
+        document.getElementById('emergencyContact').value = user.emergency_contact || '';
+
+        setSession(getToken(), user);
+        renderNavbar();
+      } catch (err) {
+        showAlert('profileAlert', 'Failed to load profile details: ' + err.message);
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert('profileAlert');
+
+      const payload = {
+        full_name: document.getElementById('fullName').value.trim(),
+        phone_number: document.getElementById('phoneNumber').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        blood_group: document.getElementById('bloodGroup').value,
+        address: document.getElementById('address').value.trim(),
+        emergency_contact: document.getElementById('emergencyContact').value.trim(),
+      };
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving details to backend...';
+
+      try {
+        const updatedUser = await apiRequest('/user/profile', {
+          method: 'PUT',
+          body: payload,
+          auth: true
+        });
+
+        setSession(getToken(), updatedUser);
+        showAlert('profileAlert', 'Profile updated and saved to backend database successfully!', true);
+        loadUserProfile();
+      } catch (err) {
+        showAlert('profileAlert', err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save Profile Details';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserProfile();
+    });
+  </script>
+</body>
+</html>

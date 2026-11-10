@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Management - Patient & Staff Login</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="register.html" class="btn btn-green btn-sm">Create Account</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Login Form Wrapper -->
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 50px; height: 50px; font-size: 1.6rem;">🏥</div>
+        <h1>Patient & User Login</h1>
+        <p>Access your medical profile, doctor appointments, and hospital services.</p>
+      </div>
+
+      <div id="loginAlert" class="alert"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username or Email Address</label>
+          <input 
+            type="text" 
+            id="username" 
+            class="form-control" 
+            placeholder="Enter your username or email" 
+            required 
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            class="form-control" 
+            placeholder="Enter your password" 
+            required 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <div class="form-footer">
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-muted);">
+            <input type="checkbox" id="rememberMe"> Remember me
+          </label>
+          <a href="forgot-password.html">Forgot Password?</a>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
+          Secure Sign In
+        </button>
+      </form>
+
+      <div class="auth-links">
+        New to CityCare Hospital? 
+        <a href="register.html" style="font-weight: 700; color: var(--accent-green);">Create an Account</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert('loginAlert');
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showAlert('loginAlert', 'Please enter both username and password.');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Verifying credentials...';
+
+      try {
+        const response = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: { username, password }
+        });
+
+        showAlert('loginAlert', 'Login successful! Redirecting...', true);
+        setSession(response.token, response.user);
+
+        // Check if user has filled profile details; if not, direct to profile
+        setTimeout(() => {
+          if (!response.user.full_name || !response.user.phone_number) {
+            window.location.href = 'profile.html?welcome=1';
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 800);
+
+      } catch (err) {
+        showAlert('loginAlert', err.message);
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Secure Sign In';
+      }
+    });
+  </script>
+</body>
+</html>
+

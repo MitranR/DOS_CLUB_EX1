@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CityCare Hospital - Quality Patient Care</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <!-- Injected dynamically by api.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section (Simple & Short) -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">CityCare Hospital</h1>
+      <p class="hero-subtitle">Quality medical care, dedicated specialists, and transparent doctor scheduling.</p>
+      <div class="hero-actions">
+        <a href="doctors.html" class="btn btn-primary btn-sm">
+          🩺 View Doctors & Slots
+        </a>
+        <a href="about.html" class="btn btn-outline btn-sm">
+          🏥 About Hospital
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dedicated Services & Navigation Hub -->
+  <section class="section-container" style="padding: 2rem 1.25rem;">
+    <div class="about-grid">
+      <!-- Card 1: About Hospital -->
+      <div class="about-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="highlight-icon" style="margin-bottom: 0.75rem;">🏥</div>
+          <h3>About Hospital</h3>
+          <p>
+            Learn about CityCare’s infrastructure, 250+ bed capacity, advanced ICUs, and our compassionate patient-first philosophy.
+          </p>
+        </div>
+        <a href="about.html" class="btn btn-outline btn-block" style="margin-top: 1rem;">
+          Read Overview &rarr;
+        </a>
+      </div>
+
+      <!-- Card 2: Doctors & Availability -->
+      <div class="about-card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: #93c5fd;">
+        <div>
+          <div class="highlight-icon green" style="margin-bottom: 0.75rem;">👨‍⚕️</div>
+          <h3>Doctors & Availability</h3>
+          <p>
+            Check real-time outpatient availability. Each specialist maintains a strict daily limit of 25–40 slots for focused medical care.
+          </p>
+        </div>
+        <a href="doctors.html" class="btn btn-green btn-block" style="margin-top: 1rem;">
+          View Doctors & Slots &rarr;
+        </a>
+      </div>
+
+      <!-- Card 3: Patient Profile & Account -->
+      <div class="about-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="highlight-icon" style="margin-bottom: 0.75rem;">👤</div>
+          <h3>Patient Portal</h3>
+          <p>
+            Manage your personal profile, contact information, blood group, emergency details, and view your active appointment history.
+          </p>
+        </div>
+        <a href="profile.html" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+          Access Profile &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+</body>
+</html>

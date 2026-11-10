@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account - CityCare Hospital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-icon">🏥</span>
+        <span>CityCare Hospital</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="doctors.html">Doctors</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Register Form Wrapper -->
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 50px; height: 50px; font-size: 1.6rem; background: linear-gradient(135deg, var(--accent-green), var(--primary-blue));">👤</div>
+        <h1>Create New Account</h1>
+        <p>Register your account to access hospital appointments and patient records.</p>
+      </div>
+
+      <div id="registerAlert" class="alert"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="regUsername">Choose Username</label>
+          <input 
+            type="text" 
+            id="regUsername" 
+            class="form-control" 
+            placeholder="e.g. michael_scott" 
+            required 
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input 
+            type="email" 
+            id="regEmail" 
+            class="form-control" 
+            placeholder="name@example.com" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input 
+            type="password" 
+            id="regPassword" 
+            class="form-control" 
+            placeholder="Minimum 6 characters" 
+            required 
+            autocomplete="new-password"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="regConfirmPassword">Confirm Password</label>
+          <input 
+            type="password" 
+            id="regConfirmPassword" 
+            class="form-control" 
+            placeholder="Re-enter your password" 
+            required 
+            autocomplete="new-password"
+          >
+        </div>
+
+        <button type="submit" id="regBtn" class="btn btn-green btn-block">
+          Create Account & Continue
+        </button>
+      </form>
+
+      <div class="auth-links">
+        Already registered? 
+        <a href="login.html" style="font-weight: 700; color: var(--primary-blue);">Sign In Here</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 CityCare Hospital Management System. All rights reserved.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById('registerForm');
+    const regBtn = document.getElementById('regBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert('registerAlert');
+
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+      if (password.length < 6) {
+        showAlert('registerAlert', 'Password must be at least 6 characters long.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert('registerAlert', 'Passwords do not match. Please re-enter.');
+        return;
+      }
+
+      regBtn.disabled = true;
+      regBtn.textContent = 'Creating account...';
+
+      try {
+        // Step 1: Register account
+        await apiRequest('/auth/register', {
+          method: 'POST',
+          body: { username, email, password }
+        });
+
+        // Step 2: Automatically sign in
+        const loginRes = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: { username, password }
+        });
+
+        setSession(loginRes.token, loginRes.user);
+
+        showAlert('registerAlert', 'Account created successfully! Proceeding to profile setup...', true);
+
+        // Redirect to profile page to fill in hospital details
+        setTimeout(() => {
+          window.location.href = 'profile.html?welcome=1';
+        }, 900);
+
+      } catch (err) {
+        showAlert('registerAlert', err.message);
+        regBtn.disabled = false;
+        regBtn.textContent = 'Create Account & Continue';
+      }
+    });
+  </script>
+</body>
+</html>
+

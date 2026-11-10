@@ -1,0 +1,15 @@
+services:
+  hospital-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hospital_management_app
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persistent storage volume for SQLite database
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+
